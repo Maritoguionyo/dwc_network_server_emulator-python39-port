@@ -547,7 +547,7 @@ class GameSpyQRServer(object):
                      address[0], address[1])
             self.sessions[session_id].keepalive = int(time.time())
 
-        elif recv_data.startswith(b'x09'): #elif recv_data[0] == '\x09':  # Available
+        elif recv_data.startswith(b'\x09'): #elif recv_data[0] == '\x09':  # Available
             # Availability check only sent to *.available.gs.nintendowifi.net
             self.log(logging.DEBUG, address, session_id,
                      "Received availability request for '%s' from %s:%s...",

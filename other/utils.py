@@ -124,7 +124,10 @@ def get_num_from_bytes(data, idx, fmt, bigEndian=False):
     if isinstance(data, str):
         data = data.encode('utf-8')
     #data = bytes(data) #test
-    return struct.unpack_from("<>"[bigEndian] + fmt, bytearray(data), idx)[0]
+    try:
+        return struct.unpack_from("<>"[bigEndian] + fmt, bytearray(data), idx)[0]
+    except:
+        return
     #return struct.unpack_from("<>"[bigEndian] + fmt, buffer(bytearray(data)), idx)[0] #changed
 
 # Instead of passing slices, pass the buffer and index so we can calculate
