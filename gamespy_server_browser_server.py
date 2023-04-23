@@ -171,7 +171,14 @@ class Session(LineReceiver):
 
             self.buffer += data #self.buffer += data
             print(self.buffer)
+            
             while len(self.buffer) > 0:
+                if len(self.buffer) < 2:
+                    print('buffer smol, skipping, padding')
+                    self.buffer = data
+                    #pad = b'\x00\x00'
+                    #self.buffer += pad
+                    #return  # not enough data in buffer yet
                 packet_len = utils.get_short(self.buffer, 0, True)
                 print(packet_len)
                 packet = None
@@ -181,8 +188,10 @@ class Session(LineReceiver):
                 packet_data = self.buffer
                 self.buffer = bytes(self.buffer)
                 print(len(self.buffer), packet_len)  ##fix packet size later
-                if len(self.buffer) != packet_len:
-                    packet_len = packet_len - 2
+                #if len(self.buffer) != packet_len:
+                #    pad = b'\x00\x00'
+                    self.buffer += pad
+                    #packet_len = packet_len - 2
                 if len(self.buffer) >= packet_len:
                     packet = self.buffer[:packet_len]
                     self.buffer = self.buffer[packet_len:]
