@@ -130,30 +130,7 @@ class Session(LineReceiver):
                    *args, **kwargs)
 
     def rawDataReceived(self, data):
-        print(type(data))
-        #data = data.decode()
-        #data = str(data)
-        #if data.startswith("b'") or my_string.startswith('b"'): ##for some reason casues syntax rerror on top
-        #    data = data[2:-1]
-        #data_str = str(data)
-
-        # Encode the byte string as a string with escape sequences
-        string_with_escapes = data.decode('unicode_escape')
-
-        # Remove the b prefix and the ' suffix
-        if string_with_escapes.startswith("b'") or string_with_escapes.startswith('b"'):
-            string_with_escapes = string_with_escapes[2:-1]
-
-        # Convert each escape sequence to a byte and then to an integer
-        integer_list = [ord(char) for char in string_with_escapes]
-        #string_with_escapes = byte_string.decode('unicode_escape')
-        #data_list = [ord(x) for x in data_str]
-        #data = data_list
-        data = integer_list
-        #print(type(integer_list) + integer_list)
-        integer_list = bytes(integer_list)
-        print(type(data))
-        data = bytes(data)
+ 
         try:
             # First 2 bytes are the packet size.
             #
@@ -173,9 +150,9 @@ class Session(LineReceiver):
             print(self.buffer)
             
             while len(self.buffer) > 0:
-                if len(self.buffer) < 2:
-                    print('buffer smol, skipping, padding')
-                    self.buffer = data
+                #if len(self.buffer) < 2:
+                #    print('buffer smol, skipping, padding')
+                #    self.buffer = data
                     #pad = b'\x00\x00'
                     #self.buffer += pad
                     #return  # not enough data in buffer yet
@@ -190,7 +167,7 @@ class Session(LineReceiver):
                 print(len(self.buffer), packet_len)  ##fix packet size later
                 #if len(self.buffer) != packet_len:
                 #    pad = b'\x00\x00'
-                    self.buffer += pad
+                    #self.buffer += pad
                     #packet_len = packet_len - 2
                 if len(self.buffer) >= packet_len:
                     packet = self.buffer[:packet_len]
