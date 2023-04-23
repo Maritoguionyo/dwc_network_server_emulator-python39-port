@@ -130,6 +130,30 @@ class Session(LineReceiver):
                    *args, **kwargs)
 
     def rawDataReceived(self, data):
+        print(type(data))
+        #data = data.decode()
+        #data = str(data)
+        #if data.startswith("b'") or my_string.startswith('b"'): ##for some reason casues syntax rerror on top
+        #    data = data[2:-1]
+        #data_str = str(data)
+
+        # Encode the byte string as a string with escape sequences
+        string_with_escapes = data.decode('unicode_escape')
+
+        # Remove the b prefix and the ' suffix
+        if string_with_escapes.startswith("b'") or string_with_escapes.startswith('b"'):
+            string_with_escapes = string_with_escapes[2:-1]
+
+        # Convert each escape sequence to a byte and then to an integer
+        integer_list = [ord(char) for char in string_with_escapes]
+        #string_with_escapes = byte_string.decode('unicode_escape')
+        #data_list = [ord(x) for x in data_str]
+        #data = data_list
+        data = integer_list
+        #print(type(integer_list) + integer_list)
+        integer_list = bytes(integer_list)
+        print(type(data))
+        data = bytes(data)
         try:
             # First 2 bytes are the packet size.
             #
@@ -145,15 +169,29 @@ class Session(LineReceiver):
             # For Tetris DS, at the very least 0x00 and 0x02 need to be
             # implemented.
 
-            self.buffer += data
-
+            self.buffer += data #self.buffer += data
+            print(self.buffer)
             while len(self.buffer) > 0:
                 packet_len = utils.get_short(self.buffer, 0, True)
+                print(packet_len)
                 packet = None
 
+                print(len(self.buffer), packet_len)  ##fix packet size later
+                print(bytes(self.buffer))
+                packet_data = self.buffer
+                self.buffer = bytes(self.buffer)
+                print(len(self.buffer), packet_len)  ##fix packet size later
+                if len(self.buffer) != packet_len:
+                    packet_len = packet_len - 2
                 if len(self.buffer) >= packet_len:
                     packet = self.buffer[:packet_len]
                     self.buffer = self.buffer[packet_len:]
+                    print("Extracted packet:", packet)
+                else:
+                    print("Not enough bytes in buffer.")
+                #if len(self.buffer) >= packet_len:
+                #    packet = self.buffer[:packet_len]
+                #    self.buffer = self.buffer[packet_len:]
 
                 
                 if packet is None:
@@ -175,7 +213,7 @@ class Session(LineReceiver):
                     #packet = intpacket 
                     #packet = str(packet)
 
-                    packet_str = ''.join([chr(byte) for byte in packet]) ######seems to make it work now, however, some other code is still broken so matchmaking still not possible but promising
+                    packet_str = ''.join([chr(byte) for byte in packet_data]) ######seems to make it work now, however, some other code is still broken so matchmaking still not possible but promising
                     #packet = packet_str #for tesdting packet_str
                     # This code is so... not python. The C programmer in me is
                     # coming out strong.
@@ -452,7 +490,8 @@ class Session(LineReceiver):
         if not self.server_list:
             self.server_list = [{}]
 
-        data = self.generate_server_list_header_data(self.address, fields)
+       
+        data = self.generate_server_list_header_data(self.address, fields) #self.generate_server_list_header_data(self.address, fields)
         for i in range(0, len(self.server_list)):
             server = self.server_list[i]
 

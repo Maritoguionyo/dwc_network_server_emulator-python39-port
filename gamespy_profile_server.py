@@ -195,8 +195,13 @@ class PlayerSession(LineReceiver):
             #data = self.remaining_message.encode() + data
             #data = self.remaining_message + data
             #data = self.remaining_message.decode() + data
-            data = self.remaining_message + data.decode('iso-8859-1')
+            #data = self.remaining_message + data.decode('iso-8859-1')    #####check later
+            print(type(data))
+            print(data)
 
+            data = self.remaining_message + data.decode('iso-8859-1')
+            print(type(data))
+            print(data)
 
 
 
