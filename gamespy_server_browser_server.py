@@ -155,11 +155,13 @@ class Session(LineReceiver):
                     packet = self.buffer[:packet_len]
                     self.buffer = self.buffer[packet_len:]
 
+                
                 if packet is None:
                     # Don't have enough for the entire packet, break.
                     break
+                
 
-                if packet[2] == 0: #testing#if packet[2] == '\x00':  # Server list request
+                if packet[2] == 0: #if packet[2] == 0: #testing#if packet[2] == '\x00':  # Server list request
                     self.log(logging.DEBUG,
                              "Received server list request from %s:%s...",
                              self.address.host, self.address.port)
@@ -174,32 +176,32 @@ class Session(LineReceiver):
                     #packet = str(packet)
 
                     packet_str = ''.join([chr(byte) for byte in packet]) ######seems to make it work now, however, some other code is still broken so matchmaking still not possible but promising
-                    packet = packet_str
+                    #packet = packet_str #for tesdting packet_str
                     # This code is so... not python. The C programmer in me is
                     # coming out strong.
                     # TODO: Rewrite this section later?
                     idx = 3
-                    list_version = ord(packet[idx])
+                    list_version = ord(packet_str[idx]) #changing to packet_str as a test
                     idx += 1
-                    encoding_version = ord(packet[idx])
+                    encoding_version = ord(packet_str[idx])
                     idx += 1
-                    game_version = utils.get_int(packet, idx)
+                    game_version = utils.get_int(packet_str, idx)
                     idx += 4 ##it's probably trying to get the game id from \x00\xac\x00\x01\x03\x00\x00\x00\x00mariokartwii\ ....
                     #cuz adding idx seems to reach 0x00mariokartwii
-                    query_game = utils.get_string(packet, idx)
+                    query_game = utils.get_string(packet_str, idx)
                     idx += len(query_game) + 1
-                    game_name = utils.get_string(packet, idx)
+                    game_name = utils.get_string(packet_str, idx)
                     idx += len(game_name) + 1
 
-                    challenge = ''.join(packet[idx:idx+8])
+                    challenge = ''.join(packet_str[idx:idx+8])
                     idx += 8
 
-                    filter = utils.get_string(packet, idx)
+                    filter = utils.get_string(packet_str, idx)
                     idx += len(filter) + 1
-                    fields = utils.get_string(packet, idx)
+                    fields = utils.get_string(packet_str, idx)
                     idx += len(fields) + 1
 
-                    options = utils.get_int(packet, idx, True)
+                    options = utils.get_int(packet_str, idx, True)
                     idx += 4
 
                     source_ip = 0
@@ -345,9 +347,9 @@ class Session(LineReceiver):
 
         # Write the fields
         for field in fields:
-            if isinstance(field, str):
-                field = field.encode('utf-8') ##testing
-            output += bytearray(field) + b'\0\0' #output += bytearray(field) + '\0\0' #testing
+            #if isinstance(field, str):
+            #    field = field.encode('utf-8') ##testing   #########rename for testing
+            output += bytearray(field.encode()) + b'\0\0' #output += bytearray(field) + '\0\0' #output += bytearray(field) + '\0\0' #testing
 
         return output
 
@@ -477,7 +479,7 @@ class Session(LineReceiver):
             #     self.server_cache[str(server['publicip']) + \
             #                       str(server['publicport'])] = server
 
-        data += bytearray('\0', 'utf-8') #####data += '\0' #testing
+        data += bytearray(b'\0') #data += bytearray('\0', 'utf-8') #####data += '\0' #testing
         data += utils.get_bytes_from_int(0xffffffff)
         send_encrypted_data(self, challenge, data)
 
