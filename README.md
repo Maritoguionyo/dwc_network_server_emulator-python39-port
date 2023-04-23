@@ -1,4 +1,4 @@
-dwc_network_server_emulator   
+dwc_network_server_emulator python3.9   
 ===========================
 
 A work in progress fork of dwc_network_server_emulator to a newer python version
