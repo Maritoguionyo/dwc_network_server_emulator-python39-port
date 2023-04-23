@@ -1,6 +1,8 @@
 dwc_network_server_emulator   
 ===========================
-  
+
+A work in progress fork of dwc_network_server_emulator to a newer python version
+
 A Nintendo DS and Wii online multiplayer server emulator.
 
 [Usage Instructions](https://github.com/polaris-/dwc_network_server_emulator/wiki) | [Partial Compatibilty List](https://github.com/polaris-/dwc_network_server_emulator/wiki/Compatibility) | [Available Content](https://github.com/polaris-/dwc_network_server_emulator/wiki/Nintendo-DS-Download-Content)
@@ -15,7 +17,7 @@ Instructions for setting up your own server can be found [here](https://github.c
 
 Requirements:
 -------------
- - Python 2.7
+ - Python 3.9
    - Twisted
      - zope.interface
      - pywin32 (for Windows users only)
