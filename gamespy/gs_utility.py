@@ -272,12 +272,12 @@ class EncTypeX:
 
         # Convert data from strings to byte arrays before use or else
         # it'll raise an error
-        if isinstance(key, str): #check if key is a string to encode #cuz python 39 is annoying xd
-            key = key.encode('utf-8')
-        key = bytearray(key)
-        if isinstance(validate, str): #idk probably I'm doing somethign wrong jelp mii plis
-            validate = validate.encode('utf-8')
-        validate = bytearray(validate)
+        #if isinstance(key, str): #check if key is a string to encode #cuz python 39 is annoying xd
+        #    key = bytes(key)
+        key = bytearray(key.encode('ascii'))
+        #if isinstance(validate, str): #idk probably I'm doing somethign wrong jelp mii plis
+        #    validate = bytes(validate)  #.encode('utf-8')
+        validate = bytearray(validate.encode('ascii'))
 
         # Add room for the header
         tmp_len = 20
@@ -327,7 +327,7 @@ class EncTypeX:
             bytearray(validate),
             data[header_len:],
             data_start
-        )
+        ) ########### mmmmmmmmmmmmmmmmmmmmmmmmmmmm
 
         return data[data_start:]
 
