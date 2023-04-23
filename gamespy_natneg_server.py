@@ -25,10 +25,10 @@
 """
 
 import logging
-import SocketServer
+import socketserver as SocketServer
 import threading
 import time
-import Queue
+import queue as Queue
 import gamespy.gs_utility as gs_utils
 import other.utils as utils
 import traceback
@@ -744,8 +744,9 @@ class GameSpyNatNegUDPServer(SocketServer.UDPServer):
 
         self.server_manager = GameSpyServerDatabase(
             address=dwc_config.get_ip_port('GameSpyManager'),
-            authkey=""
+            authkey="".encode('utf-8')
         )
+
         self.server_manager.connect()
 
         self.write_queue = Queue.Queue()

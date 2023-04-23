@@ -24,7 +24,7 @@ import logging.handlers
 import random
 import string
 import struct
-import urlparse
+import urllib.parse as urlparse
 import ctypes
 import os
 
@@ -121,7 +121,11 @@ def get_num_from_bytes(data, idx, fmt, bigEndian=False):
 
     Endianness by default is little.
     """
-    return struct.unpack_from("<>"[bigEndian] + fmt, buffer(bytearray(data)), idx)[0]
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+    data = bytes(data) #test
+    return struct.unpack_from("<>"[bigEndian] + fmt, bytearray(data), idx)[0]
+    #return struct.unpack_from("<>"[bigEndian] + fmt, buffer(bytearray(data)), idx)[0] #changed
 
 # Instead of passing slices, pass the buffer and index so we can calculate
 # the length automatically.
@@ -192,7 +196,7 @@ def get_local_addr(data, idx):
 def get_string(data, idx):
     """Get string from bytes."""
     data = data[idx:]
-    end = data.index('\x00')
+    end = data.index ('\x00') #end = data.index('\x00') #end = data.index('\x00')###testing
     return str(''.join(data[:end]))
 
 
@@ -291,9 +295,9 @@ def print_hex(data, cols=16, sep=' ', pretty=True):
     Can be pretty printed but takes more time.
     """
     if pretty:
-        print pretty_print_hex(data, cols, sep)
+        print(pretty_print_hex(data, cols, sep))
     else:
-        print sep.join("%02x" % b for b in bytearray(data))
+        print(sep.join("%02x" % b for b in bytearray(data)))
 
 
 def pretty_print_hex(orig_data, cols=16, sep=' '):
@@ -386,6 +390,7 @@ def qs_to_dict(s):
     return ret
 
 
+
 def dict_to_qs(d):
     """Convert dict to query string.
 
@@ -393,6 +398,20 @@ def dict_to_qs(d):
     use encoding for special characters.
     """
     # Dictionary comprehension is used to not modify the original
-    ret = {k: base64.b64encode(v).replace("=", "*") for k, v in d.items()}
+    ret = {k.encode(): v.encode() if isinstance(v, str) else v for k, v in d.items()}
+    ret = {k: base64.b64encode(v).replace(b"=", b"*") for k, v in ret.items()}
+    return "&".join("{!s}={!s}".format(k.decode(), v.decode()) for k, v in ret.items()) + "\r\n"
 
-    return "&".join("{!s}={!s}".format(k, v) for k, v in ret.items()) + "\r\n"
+
+
+
+#def dict_to_qs(d):
+#    """Convert dict to query string.
+
+#    nas(wii).nintendowifi.net has a URL query-like format but does not
+#    use encoding for special characters.
+#    """
+#    # Dictionary comprehension is used to not modify the original
+#    ret = {k: base64.b64encode(v).replace("=", "*") for k, v in d.items()}
+#
+#    return "&".join("{!s}={!s}".format(k, v) for k, v in ret.items()) + "\r\n"

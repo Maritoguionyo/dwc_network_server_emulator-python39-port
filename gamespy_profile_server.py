@@ -19,7 +19,7 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-
+import json
 import logging
 import time
 import traceback
@@ -156,7 +156,9 @@ class PlayerSession(LineReceiver):
             ])
 
             self.log(logging.DEBUG, "SENDING: '%s'...", msg)
-            self.transport.write(bytes(msg))
+            self.transport.write(bytes(msg, 'utf-8'))
+
+            #self.transport.write(bytes(msg))
         except:
             self.log(logging.ERROR,
                      "Unknown exception: %s",
@@ -190,7 +192,15 @@ class PlayerSession(LineReceiver):
             # stored in the variable remaining_message. On the next
             # rawDataReceived command, the remaining message and the data
             # are combined to create a full command.
-            data = self.remaining_message + data
+            #data = self.remaining_message.encode() + data
+            #data = self.remaining_message + data
+            #data = self.remaining_message.decode() + data
+            data = self.remaining_message + data.decode('iso-8859-1')
+
+
+
+
+            #data = self.remaining_message + data
 
             # Check to make sure the data buffer starts with a valid command.
             if len(data) > 0 and data[0] != '\\':
@@ -198,9 +208,13 @@ class PlayerSession(LineReceiver):
                 # there's no chance of it being valid. Look for the first
                 # instance of \final\ and remove everything before it. If
                 # \final\ is not in the command string then ignore it.
-                final = "\\final\\"
-                data = data[data.index(final) + len(final):] \
-                    if final in data else ""
+                final = b"\\final\\"
+
+                data = data[data.index(final) + len(final):] if final in data else b""
+
+                #data = data[data.index(final) + len(final):] \
+                #if final in data else ""
+                #if final in data else b""
 
             commands, self.remaining_message = \
                 gs_query.parse_gamespy_message(data)
@@ -249,16 +263,31 @@ class PlayerSession(LineReceiver):
                            ' pre-authentication.'),
                 ('id', data_parsed['id']),
             ])
-            self.transport.write(bytes(msg))
+            self.transport.write(msg.encode()) #1234
+            #self.transport.write(bytes(msg))
             return
 
         if 'sdkrevision' in data_parsed:
             self.sdkrevision = data_parsed['sdkrevision']
 
         # Verify the client's response
+        authtoken_str = json.dumps({k: v.decode() if isinstance(v, bytes) else v for k, v in authtoken_parsed.items()})
+        authtoken_parsed = json.loads(authtoken_str)
+
+        data_str = authtoken_parsed['data'][2:-1]
+
+        data = json.loads(data_str)  # parse the JSON string
+        challenge = data['challenge'] 
+        authtoken_parsed = data
+
         valid_response = gs_utils.generate_response(
             self.challenge,
-            authtoken_parsed['challenge'],
+
+
+
+            
+
+            authtoken_parsed['challenge'], #broken maybe
             data_parsed['challenge'],
             data_parsed['authtoken']
         )
@@ -347,7 +376,7 @@ class PlayerSession(LineReceiver):
             self.profileid = int(profileid)
 
             self.log(logging.DEBUG, "SENDING: %s", msg)
-            self.transport.write(bytes(msg))
+            self.transport.write(bytes(msg.encode('utf-8')))
 
             # Get pending messages.
             self.get_pending_messages()
@@ -427,17 +456,17 @@ class PlayerSession(LineReceiver):
         msg = gs_query.create_gamespy_message(msg_d)
 
         self.log(logging.DEBUG, "SENDING: %s", msg)
-        self.transport.write(bytes(msg))
+        self.transport.write(bytes(msg.encode('utf-8')))
 
     def perform_updatepro(self, data_parsed):
-        """Wii example:
-        \updatepro\\sesskey\199714190\firstname\Wii:2555151656076614@WR9E
-        \partnerid\11\final\
+#        """Wii example:
+#        \updatepro\\sesskey\199714190\firstname\Wii:2555151656076614@WR9E
+#        \partnerid\11\final\
 
-        Remove any fields not related to what we should be updating.
-        To avoid any crashes, make sure the key is actually in the dictionary
-        before removing it.
-        """
+#        Remove any fields not related to what we should be updating.
+#        To avoid any crashes, make sure the key is actually in the dictionary
+#        before removing it.
+#        """
         if "__cmd__" in data_parsed:
             data_parsed.pop('__cmd__')
         if "__cmd_val__" in data_parsed:
@@ -460,7 +489,9 @@ class PlayerSession(LineReceiver):
             ('__cmd__', "ka"),
             ('__cmd_val__', ""),
         ])
-        self.transport.write(msg)
+        #self.transport.write(msg)
+        self.transport.write(msg.encode())
+
 
     def perform_status(self, data_parsed):
         self.sesskey = data_parsed['sesskey']

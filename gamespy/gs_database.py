@@ -18,7 +18,7 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-
+import pickle
 import sqlite3
 import hashlib
 import itertools
@@ -29,6 +29,10 @@ from contextlib import closing
 
 import other.utils as utils
 import gamespy.gs_utility as gs_utils
+
+itertools.izip = zip
+
+time.clock = time.perf_counter
 
 # Logger settings
 SQL_LOGLEVEL = logging.DEBUG
@@ -61,8 +65,26 @@ class Transaction(object):
 
         timeStart = time.time()
         clockStart = time.clock()
+        #temp# parameters = [item.decode() if isinstance(item, bytes) else item for item in parameters if not isinstance(item, bytes) or isinstance(item, str)]
+        #parameters = [item.decode() if isinstance(item, bytes) else item for item in parameters] #test
+        #testing
 
-        cursor.execute(statement, parameters)
+        parameters = [str(value) for value in parameters]
+
+        try:
+            cursor.execute(statement, parameters)
+        except Exception as e:
+            print("Error executing statement:", statement)
+            print("Parameters:", parameters)
+            print("Error message:", e)
+            error_message = f"Error executing statement: {statement}\nParameters: {parameters}\nError message: {e}"
+            raise Exception(error_message)
+
+
+
+
+
+        # cursor.execute(statement, parameters)
 
         clockEnd = time.clock()
         timeEnd = time.time()
@@ -189,7 +211,20 @@ class GamespyDatabase(object):
         if not row:
             return None
 
+
         return dict(itertools.izip(row.keys(), row))
+        # Assume row is a dictionary
+        #return {k: v for k, v in zip(row.keys(), row.values())}
+        # Assume row is a dictionary
+        #return dict(zip(row.keys(), row.values()))
+
+
+        #return dict(itertools.izip(row.keys(), row))
+        #return {k: row[k] for k in row.keys()}
+        #return dict(row)
+        #return {k: str(v) if isinstance(v, types.BuiltinMethodType) else v for k, v in row.items()}
+        #return dict(zip(row.keys(), row))
+        #return dict(itertools.izip(row.keys(), row)) #changing itertools.izip to zip
 
     # User functions
     def get_next_free_profileid(self):
@@ -294,7 +329,7 @@ class GamespyDatabase(object):
             # TODO: Replace with something stronger later, although it's
             # overkill for the NDS.
             md5 = hashlib.md5()
-            md5.update(password)
+            md5.update(password.encode('utf-8'))
             password = md5.hexdigest()
 
             with Transaction(self.conn) as tx:
@@ -471,38 +506,77 @@ class GamespyDatabase(object):
 
         return [self.get_dict(row) for row in r]
 
+
     # nas server functions
+
+
+
     def get_nas_login(self, authtoken):
         with Transaction(self.conn) as tx:
-            row = tx.queryone(
-                "SELECT data FROM nas_logins WHERE authtoken = ?",
-                (authtoken,)
-            )
+            row = tx.queryone("SELECT data FROM nas_logins WHERE authtoken = ?", (authtoken,))
             r = self.get_dict(row)
 
-        if r is None:
+        if r == None:
             return None
         else:
+            byte_r = {}
+            for k, v in r.items():
+                if isinstance(v, str):
+                    byte_r[k] = v.encode()
+                else:
+                    byte_r[k] = v
+            return byte_r
+            r = byte_r
+            #if isinstance(r.get("data"), dict):
             return json.loads(r["data"])
+            #print("error jsonnnn")
+            #return json.loads(r["data"])
 
-    def get_nas_login_from_userid(self, userid):
-        with Transaction(self.conn) as tx:
-            row = tx.queryone(
-                "SELECT data FROM nas_logins WHERE userid = ?",
-                (userid,)
-            )
-            r = self.get_dict(row)
 
-        if r is None:
-            return None
-        else:
-            return json.loads(r["data"])
+    #def get_nas_login(self, authtoken):
+        #with Transaction(self.conn) as tx:
+        #    row = tx.queryone(
+        #        "SELECT data FROM nas_logins WHERE authtoken = ?",
+        #        (authtoken,)
+        #    )
+        #    r = self.get_dict(row)
+
+        #if r is None:
+        #    return None
+        #else:
+            #
+            #try:
+                #r = self.get_dict(row)
+                #print(r["data"])
+                #print(f"r['data'] = {r['data']}")
+                #data = pickle.loads(r["data"].encode("utf-8"))
+                #data = json.loads(r["data"])
+#            except json.decoder.JSONDecodeError as e:
+#                print(f"Error decoding JSON data: {r['data']}")
+#                print("returning None for now(fix later xd)")
+#                raise e
+#                return None ##############remember
+                #raise e
+            #return json.loads(r["data"])
+
+#    def get_nas_login_from_userid(self, userid):
+#        with Transaction(self.conn) as tx:
+#            row = tx.queryone(
+#                "SELECT data FROM nas_logins WHERE userid = ?",
+#                (userid,)
+#            )
+#            r = self.get_dict(row)
+
+#        if r is None:
+#            return None
+#        else:
+#            return json.loads(r["data"])
 
     def is_banned(self, postdata):
         with Transaction(self.conn) as tx:
             row = tx.queryone(
                 "SELECT COUNT(*) FROM banned WHERE gameid = ? AND ipaddr = ?",
-                (postdata['gamecd'][:-1], postdata['ipaddr'])
+                (postdata[b'gamecd'][:-1].decode('utf-8'), postdata['ipaddr'])
             )
         return int(row[0]) > 0
 
@@ -572,13 +646,18 @@ class GamespyDatabase(object):
         if "ingamesn" in data:
             data["ingamesn"] = gs_utils.base64_encode(data["ingamesn"])
 
-        data = json.dumps(data)
+
+        data = {str(k, 'utf-8') if isinstance(k, bytes) else k: str(v, 'utf-8') if isinstance(v, bytes) else v for k, v in data.items()}
+        #data = {k.decode('utf-8') if isinstance(k, bytes) else k: v.decode('utf-8') if isinstance(v, bytes) else v.decode('utf-8') if isinstance(v, bytes) else v for k, v in data.items()}
+        #data = {k.decode('utf-8') if isinstance(k, bytes) else k: v.decode('utf-8') if isinstance(v, bytes) else v for k, v in data.items()}
+        data = json.dumps(data).encode('utf-8')
 
         with Transaction(self.conn) as tx:
             if r is None:  # no row, add it
                 tx.nonquery(
                     "INSERT INTO nas_logins VALUES (?, ?, ?)",
-                    (userid, authtoken, data)
+                    tuple(item.encode() if isinstance(item, str) else item for item in (userid, authtoken, data))
+                    #(userid, authtoken, data)
                 )
             else:
                 tx.nonquery(

@@ -120,7 +120,8 @@ class AdminPage(resource.Resource):
             logger.log(logging.INFO, "%s Auth Failure", address)
             request.setResponseCode(response_code)
             request.setHeader('WWW-Authenticate', 'Basic realm="ALTWFC"')
-            request.write(error_message)
+            request.write(error_message.encode('utf-8'))
+
         return is_auth
 
     def update_banlist(self, request):
@@ -253,7 +254,8 @@ class AdminPage(resource.Resource):
     def render_not_available(self, request):
         request.setResponseCode(403)
         request.setHeader('WWW-Authenticate', 'Basic realm="ALTWFC"')
-        request.write('No admin credentials set. Admin page is not available.')
+        request.write('No admin credentials set. Admin page is not available.'.encode('utf-8'))
+
 
     def render_blacklist(self, request):
         sqlstatement = """

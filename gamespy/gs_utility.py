@@ -34,16 +34,15 @@ def generate_secret_keys(filename="gslist.cfg"):
     TODO: Parse the config file in a cleaner way. (ex: using CSV module)
     """
     secret_key_list = {}
-    with open(filename) as key_file:
-        for line in key_file.readlines():
+    with open(filename, encoding='utf-8', errors='ignore') as key_file:
+        for line in key_file:
             # name = line[:54].strip()
             # Probably won't do anything with the name for now.
             id = line[54:54+19].strip()
             key = line[54+19:].strip()
-
             secret_key_list[id] = key
-
     return secret_key_list
+
 
 
 def base64_encode(input):
@@ -52,9 +51,14 @@ def base64_encode(input):
     GameSpy uses a slightly modified version of base64 which replaces
     +/= with []_
     """
-    output = base64.b64encode(input).replace('+', '[') \
-                                    .replace('/', ']') \
-                                    .replace('=', '_')
+
+    print(type(input))
+    input_bytes = input.encode()
+    print(type(input_bytes))
+    input = input_bytes
+    output = base64.b64encode(input_bytes).replace(b'+', b'[') \
+                                    .replace(b'/', b']') \
+                                    .replace(b'=', b'_')
     return output
 
 
@@ -70,8 +74,8 @@ def rc4_encrypt(_key, _data):
     """
     Tetris DS overlay 10 @ 0216E9B8
     """
-    key = bytearray(_key)
-    data = bytearray(_data)
+    key = bytearray(_key.encode('utf-8'))
+    data = bytearray(_data.encode('utf-8'))
 
     if len(key) == 0:
         # This shouldn't happen but it apparently can on a rare occasion.
@@ -117,7 +121,7 @@ def prepare_rc4_base64(_key, _data):
 
     data.append(0)
 
-    return base64.b64encode(buffer(data))
+    return base64.b64encode(data)
 
 
 def parse_authtoken(authtoken, db):
@@ -178,7 +182,7 @@ def login_profile_via_parsed_authtoken(authtoken_parsed, db):
 def generate_response(challenge, ac_challenge, secretkey, authtoken):
     """Generate a challenge response."""
     md5 = hashlib.md5()
-    md5.update(ac_challenge)
+    md5.update(ac_challenge.encode('utf-8'))
 
     output = md5.hexdigest()
     output += ' ' * 0x30
@@ -188,7 +192,7 @@ def generate_response(challenge, ac_challenge, secretkey, authtoken):
     output += md5.hexdigest()
 
     md5_2 = hashlib.md5()
-    md5_2.update(output)
+    md5_2.update(output.encode('utf-8'))
 
     return md5_2.hexdigest()
 
@@ -202,7 +206,7 @@ def generate_proof(challenge, ac_challenge, secretkey, authtoken):
     Maybe combine the two functions later?
     """
     md5 = hashlib.md5()
-    md5.update(ac_challenge)
+    md5.update(ac_challenge.encode('utf-8'))
 
     output = md5.hexdigest()
     output += ' ' * 0x30
@@ -212,7 +216,7 @@ def generate_proof(challenge, ac_challenge, secretkey, authtoken):
     output += md5.hexdigest()
 
     md5_2 = hashlib.md5()
-    md5_2.update(output)
+    md5_2.update(output.encode('utf-8'))
 
     return md5_2.hexdigest()
 
@@ -268,7 +272,11 @@ class EncTypeX:
 
         # Convert data from strings to byte arrays before use or else
         # it'll raise an error
+        if isinstance(key, str): #check if key is a string to encode #cuz python 39 is annoying xd
+            key = key.encode('utf-8')
         key = bytearray(key)
+        if isinstance(validate, str): #idk probably I'm doing somethign wrong jelp mii plis
+            validate = validate.encode('utf-8')
         validate = bytearray(validate)
 
         # Add room for the header

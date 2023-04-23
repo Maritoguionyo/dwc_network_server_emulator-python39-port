@@ -21,8 +21,8 @@
 """
 
 import logging
-import BaseHTTPServer
-import SocketServer
+import http.server as BaseHTTPServer
+import socketserver as SocketServer
 import os
 import traceback
 

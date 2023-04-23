@@ -22,9 +22,9 @@
 import os
 import random
 import logging
-import BaseHTTPServer
+import http.server as BaseHTTPServer
 import cgi
-import urlparse
+import urllib.parse as urlparse
 import sqlite3
 import xml.dom.minidom as minidom
 
@@ -352,7 +352,8 @@ class StorageHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             shortaction = action[action.rfind('/')+1:-1]
 
             ret = '<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body>'
-
+            post_str = post.decode('utf-8')
+            post = post_str
             if "<!DOCTYPE" in post.upper():
                 logger.log(logging.ERROR, "User tried to redefine a DOCTYPE")
                 return
@@ -566,7 +567,7 @@ class StorageHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
             logger.log(logging.DEBUG, "%s response to %s", action, self.client_address)
             #logger.log(logging.DEBUG, ret)
-            self.wfile.write(ret)
+            self.wfile.write(ret.encode('utf-8'))
 
         elif self.path.startswith("/SakeFileServer/upload.aspx?"):
             retcode = 0

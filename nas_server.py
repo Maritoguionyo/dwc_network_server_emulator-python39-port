@@ -22,8 +22,8 @@
 
 import logging
 import time
-import BaseHTTPServer
-import SocketServer
+import http.server as BaseHTTPServer
+import socketserver as SocketServer
 import traceback
 
 from gamespy import gs_database
@@ -102,7 +102,14 @@ def handle_ac_login(handler, db, addr, post):
         challenge = utils.generate_random_str(8)
         post["challenge"] = challenge
 
-        authtoken = db.generate_authtoken(post["userid"], post)
+    if 'userid' in post:
+        authtoken = db.generate_authtoken(post['userid'], post)
+        print('stringgggggggg')
+    elif b'userid' in post:
+        authtoken = db.generate_authtoken(post[b'userid'], post)
+        print('byteeeeeeeeeee')
+
+
         ret = {
             "retry": "0",
             "returncd": "001",
@@ -166,7 +173,16 @@ def handle_ac(handler, addr, post):
                handler.path, *addr)
     logger.log(logging.DEBUG, "%s", post)
 
-    action = str(post["action"]).lower()
+    action = post[b'action'].decode('utf-8')
+
+    if "action" not in post:
+        logger.log(logging.ERROR, "Missing 'action' key in POST request. (nas_server.py line 170)")
+        #action = "login" #check old python version
+        #return {"error": "Missing 'action' key in POST request."}
+
+    #action = str(post["action"]).lower()
+    #action = str(post.get("action", "")).lower()
+    #action = str(post.get("action")).lower() #a
     command = handler.ac_actions.get(action, handle_ac_action)
     ret = command(handler, gs_database.GamespyDatabase(), addr, post)
 
@@ -175,7 +191,15 @@ def handle_ac(handler, addr, post):
     handler.send_header("Content-type", "text/plain")
     handler.send_header("NODE", "wifiappe1")
 
+    for key, value in ret.items():
+        if isinstance(value, str):
+            ret[key] = value.encode()
+
+    
+
     return utils.dict_to_qs(ret)
+    #return utils.dict_to_qs(str(ret).encode('utf-8'))
+
 
 
 def handle_pr(handler, addr, post):
@@ -231,7 +255,8 @@ class NasHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header("X-Organization", "Nintendo")
             self.send_header("Server", "BigIP")
             self.end_headers()
-            self.wfile.write("ok")
+            self.wfile.write("ok".encode())
+
         except:
             logger.log(logging.ERROR, "Exception occurred on GET request!")
             logger.log(logging.ERROR, "%s", traceback.format_exc())
@@ -240,6 +265,10 @@ class NasHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         try:
             length = int(self.headers['content-length'])
             post = utils.qs_to_dict(self.rfile.read(length))
+
+            # Decode the entire post payload using UTF-8 encoding ###########test
+            #post = {k.decode("utf-8"): v.decode("utf-8") for k, v in post.items()}
+
             client_address = (
                 self.headers.get('x-forwarded-for', self.client_address[0]),
                 self.client_address[1]
@@ -252,7 +281,9 @@ class NasHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if ret is not None:
                 self.send_header("Content-Length", str(len(ret)))
                 self.end_headers()
-                self.wfile.write(ret)
+                self.wfile.write(ret.encode())
+
+                #self.wfile.write(ret)
         except:
             logger.log(logging.ERROR, "Exception occurred on POST request!")
             logger.log(logging.ERROR, "%s", traceback.format_exc())

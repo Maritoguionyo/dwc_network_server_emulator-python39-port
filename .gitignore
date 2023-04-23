@@ -234,3 +234,13 @@ test*.py
 .private/*
 logs/*
 adminpageconf.json
+.vscode/launch.json
+.vs/ProjectSettings.json
+dwc_network_server_emulator.code-workspace
+.vs/VSWorkspaceState.json
+.vs/slnx.sqlite-journal
+.gitignore
+.vs/slnx.sqlite
+.gitignore
+dwc_network_server_emulator.pyproj
+dwc_network_server_emulator.sln

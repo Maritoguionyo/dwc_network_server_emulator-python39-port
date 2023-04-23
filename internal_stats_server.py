@@ -67,7 +67,14 @@ class StatsPage(resource.Resource):
         self.stats = stats
 
     def render_GET(self, request):
-        if "/".join(request.postpath) == "json":
+        uri_bytes = request.uri###
+        uri_str = uri_bytes.decode('utf-8')
+        request = uri_str###
+
+        #request = [item.decode() if isinstance(item, bytes) else item for item in request]
+        #if request[0] == "/json":
+        if request.startswith("/json"):
+        #if "/".join(request.postpath) == "json":
             raw = True
             force_update = True
         else:
@@ -75,7 +82,98 @@ class StatsPage(resource.Resource):
             force_update = False
 
         server_list = self.stats.get_server_list(force_update)
+        
+        print(server_list)
 
+        decoded_list = {
+            k.decode(): [
+                {
+                    k2.decode(): v2.decode() if isinstance(v2, bytes) else v2 if isinstance(v2, str) else v2 
+                    for k2, v2 in d.items() if not isinstance(k2, str)
+                } 
+                for v in server_list.values() for d in v
+            ]
+            for k in server_list.keys()
+}
+
+        #decoded_list = {k.decode(): [{k2.decode(): v2.decode() if isinstance(v2, bytes) else v2 if isinstance(v2, str) else v2 for k2, v2 in d.items() if not isinstance(k2, str)}] for v in server_list.values() for d in v]
+
+        #decoded_list = {k.decode(): [{k2.decode() if isinstance(k2, bytes) else k2: v2.decode() if isinstance(v2, bytes) else v2 if isinstance(v2, str) else v2 for k2, v2 in d.items() if not isinstance(k2, str)] for d in v] for k, v in server_list.items()}
+
+        #decoded_list = {k.decode(): [{k2.decode(): v2.decode() if isinstance(v2, bytes) else v2 if isinstance(v2, str) else v2 for k2, v2 in d.items() if not isinstance(k2, str)] for d in v] for k, v in server_list.items()}
+
+        #decoded_list = {k.decode(): [{k2.decode(): v2.decode() if isinstance(v2, bytes) else v2 if isinstance(v2, str) else v2 for k2, v2 in d.items()} for d in v] for k, v in server_list.items()}
+
+#        decoded_list = {
+#            k.decode(): [
+#                {
+#                    k2.decode(): v2.decode() if isinstance(v2, bytes) else v2 if isinstance(v2, str) else v2 
+#                    for k2, v2 in d.items()
+#                } 
+#                for d in v
+#            ] 
+#            if isinstance(v, list) else 
+#            v.decode() if isinstance(v, bytes) else v 
+#            for k, v in server_list.items()
+#        }
+
+        #decoded_list = {k.decode(): [{k2.decode(): v2.decode() if isinstance(v2, bytes) else v2 if not isinstance(v2, str) else v2 for k2, v2 in d.items()} for d in v] for k, v in server_list.items()}
+        #decoded_list = {k.decode(): [{k2.decode(): v2.decode() if isinstance(v2, bytes) else v2 for k2, v2 in d.items()} for d in v] for k, v in server_list.items()}
+        print(decoded_list)
+        #server_str = str(server_list, 'utf-8') # Convert bytes to string
+        #decoded_data = {}
+        #for game in json.loads(server_str):
+        #    data = json.loads(game)
+        #    decoded_data[data['gamename']] = {k: v.decode('utf-8') if isinstance(v, bytes) else v for k, v in data.items()}
+
+        #server_str = {}
+        #for game, data in server_list.items():
+        #    decoded_data = {k.decode('utf-8'): v.decode('utf-8') if isinstance(v, bytes) else v for k, v in data.items()}
+        #    server_str[game.decode('utf-8')] = str(decoded_data)
+        #decoded_list = json.loads(server_list.decode('utf-8'))
+
+        #server_str = {}
+        #for game, data in decoded_list.items():
+        #    decoded_data = {k: v.decode('utf-8') if isinstance(v, bytes) else v for k, v in data.items()}
+        #server_str[game] = str(decoded_data)
+
+
+        #server_list = self.stats.get_server_list(force_update)
+        #decoded_list = {k: {k2: v2.decode('utf-8') if isinstance(v2, bytes) else v2 for k2, v2 in v.items()} for k, v in server_list.items()}
+        #server_str = {k: str(v) for k, v in decoded_list.items()}
+
+
+        #decoded_list = json.loads(server_list.decode('utf-8'))
+        #decoded_list = {k: {k2: v2.decode('utf-8') if isinstance(v2, bytes) else v2 for k2, v2 in v.items()} for k, v in decoded_list.items()}
+        #server_str = {k: str(v) for k, v in decoded_list.items()}
+
+
+        #decoded_list = {k.decode('utf-8'): {k2.decode('utf-8'): v2.decode('utf-8') if isinstance(v2, bytes) else v2 for k2, v2 in v.items()} for k, v in server_list.items()}
+        #server_str = {k: str(v) for k, v in decoded_list.items()}
+        #decoded_list = eval(server_list.decode('utf-8'))
+        #server_str = {k: str({k2.decode('utf-8'): v2.decode('utf-8') if isinstance(v2, bytes) else v2 for k2, v2 in v.items()}) for k, v in decoded_list.items()}
+        #server_str = []
+        #for item in server_list:
+        #    if isinstance(item, dict):
+        #        decoded_item = {k: v.decode('utf-8') if isinstance(v, bytes) else v for k, v in item.items()}
+        #        server_str.append(str(decoded_item).replace("b'", "'"))
+        #    elif isinstance(item, bytes):
+        #        server_str.append(item.decode('utf-8').replace("b'", "'"))
+        #    else:
+        #        server_str.append(str(item))
+        #server_str = [str({k: v.decode('utf-8') if isinstance(v, bytes) else v for k, v in item.items()}).replace("b'", "'") for item in server_list]
+        #server_str = []
+        #for item in server_list:
+        #    if isinstance(item, bytes):
+        #        server_str.append(item.decode().replace("b'", "'"))
+        #    else:
+        #        server_str.append(str({k: v.decode() if isinstance(v, bytes) else v for k, v in item.items()}).replace("b'", "'"))
+
+        #server_str = [str({k: v.decode() if isinstance(v, bytes) else v for k, v in item.items()}).replace("b'", "'") for item in server_list]
+        #server_str = [str(item) for item in server_list]
+        #server_str = server_list.decode('utf-8')
+
+        server_list = decoded_list
         if raw:
             # List of keys to be removed
             restricted = ["publicip", "__session__", "localip0", "localip1"]
@@ -87,7 +185,7 @@ class StatsPage(resource.Resource):
                         for r in restricted:
                             if r in server:
                                 server.pop(r, None)
-
+            #output = json.dumps(server_list).encode('utf-8')
             output = json.dumps(server_list)
 
         else:
@@ -98,7 +196,7 @@ class StatsPage(resource.Resource):
                                   if server_list[game])
             output += self.footer % (self.stats.get_last_update_time())
 
-        return output
+        return output.encode('utf-8')
 
 
 class InternalStatsServer(object):
@@ -117,8 +215,9 @@ class InternalStatsServer(object):
     def start(self):
         manager_address = dwc_config.get_ip_port('GameSpyManager')
         manager_password = ""
-        self.server_manager = GameSpyServerDatabase(address=manager_address,
-                                                    authkey=manager_password)
+        self.server_manager = GameSpyServerDatabase(address=manager_address, 
+                                                    authkey=manager_password.encode('utf-8'))
+
         self.server_manager.connect()
 
         site = server.Site(StatsPage(self))

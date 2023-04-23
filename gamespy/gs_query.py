@@ -83,7 +83,7 @@ def create_gamespy_message_from_dict(messages):
 
 
 def create_gamespy_message_from_list(messages):
-    """Generate a string based on the input list."""
+    #"""Generate a string based on the input list."""
     cmd = ""
     cmd_val = ""
 

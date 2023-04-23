@@ -22,8 +22,8 @@
 """
 
 import logging
-import urlparse
-import BaseHTTPServer
+import urllib.parse as urlparse
+import http.server as BaseHTTPServer
 import traceback
 import os
 import hashlib

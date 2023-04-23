@@ -113,9 +113,14 @@ class Session(LineReceiver):
         self.buffer = []
 
         manager_address = dwc_config.get_ip_port('GameSpyManager')
+        #manager_address_str = f"{manager_address[0]}:{manager_address[1]}"
+        #manager_address_bytes = manager_address_str.encode('utf-8')
+        #manager_address = manager_address_bytes
+
+        #manager_address = dwc_config.get_ip_port('GameSpyManager')
         manager_password = ""
-        self.server_manager = GameSpyServerDatabase(address=manager_address,
-                                                    authkey=manager_password)
+        self.server_manager = GameSpyServerDatabase(address=manager_address, 
+                                                    authkey=manager_password.encode('utf-8'))
         self.server_manager.connect()
 
     def log(self, level, msg, *args, **kwargs):
@@ -154,11 +159,22 @@ class Session(LineReceiver):
                     # Don't have enough for the entire packet, break.
                     break
 
-                if packet[2] == '\x00':  # Server list request
+                if packet[2] == 0: #testing#if packet[2] == '\x00':  # Server list request
                     self.log(logging.DEBUG,
                              "Received server list request from %s:%s...",
                              self.address.host, self.address.port)
+                    #packet_bytes = bytes(packet)
+                    #################packet_str = packet_bytes.decode('ascii')
+                    #packet_str = str(packet_bytes)[2:-1]
+                    #################packet_str = packet_bytes.decode()
+                    #packet = packet_str #packet_str
+                    
+                    #intpacket = list(packet) #intpacket = [ord(byte) for byte in packet]
+                    #packet = intpacket 
+                    #packet = str(packet)
 
+                    packet_str = ''.join([chr(byte) for byte in packet]) ######seems to make it work now, however, some other code is still broken so matchmaking still not possible but promising
+                    packet = packet_str
                     # This code is so... not python. The C programmer in me is
                     # coming out strong.
                     # TODO: Rewrite this section later?
@@ -168,8 +184,8 @@ class Session(LineReceiver):
                     encoding_version = ord(packet[idx])
                     idx += 1
                     game_version = utils.get_int(packet, idx)
-                    idx += 4
-
+                    idx += 4 ##it's probably trying to get the game id from \x00\xac\x00\x01\x03\x00\x00\x00\x00mariokartwii\ ....
+                    #cuz adding idx seems to reach 0x00mariokartwii
                     query_game = utils.get_string(packet, idx)
                     idx += len(query_game) + 1
                     game_name = utils.get_string(packet, idx)
@@ -287,7 +303,8 @@ class Session(LineReceiver):
                 else:
                     self.log(logging.DEBUG,
                              "Received unknown command (%02x) from %s:%s...",
-                             ord(packet[2]),
+                             #ord(packet[2]), original
+                             ord(chr(packet[2])),
                              self.address.host, self.address.port)
                     self.log(logging.DEBUG,
                              "%s",
@@ -328,7 +345,9 @@ class Session(LineReceiver):
 
         # Write the fields
         for field in fields:
-            output += bytearray(field) + '\0\0'
+            if isinstance(field, str):
+                field = field.encode('utf-8') ##testing
+            output += bytearray(field) + b'\0\0' #output += bytearray(field) + '\0\0' #testing
 
         return output
 
@@ -406,6 +425,7 @@ class Session(LineReceiver):
 
             # Encrypt data
             enc = gs_utils.EncTypeX()
+            #game_name = str('mariokartwii')##########################delete later
             data = enc.encrypt(self.secret_key_list[game_name],
                                challenge, data)
 
@@ -457,7 +477,7 @@ class Session(LineReceiver):
             #     self.server_cache[str(server['publicip']) + \
             #                       str(server['publicport'])] = server
 
-        data += '\0'
+        data += bytearray('\0', 'utf-8') #####data += '\0' #testing
         data += utils.get_bytes_from_int(0xffffffff)
         send_encrypted_data(self, challenge, data)
 

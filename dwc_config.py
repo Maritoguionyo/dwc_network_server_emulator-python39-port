@@ -23,7 +23,7 @@ Configuration module.
 
 try:
     # Python 2
-    import ConfigParser
+    import configparser as ConfigParser
 except ImportError:
     # Python 3
     import configparser as ConfigParser

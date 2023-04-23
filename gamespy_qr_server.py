@@ -30,7 +30,7 @@ import socket
 import struct
 import threading
 import time
-import Queue
+import queue as Queue
 import traceback
 
 from multiprocessing.managers import BaseManager
@@ -98,8 +98,9 @@ class GameSpyQRServer(object):
 
             self.server_manager = GameSpyServerDatabase(
                 address=manager_address,
-                authkey=manager_password
+                authkey=manager_password.encode('utf-8')
             )
+
             self.server_manager.connect()
 
             # Start QR server
@@ -175,12 +176,12 @@ class GameSpyQRServer(object):
             # Some memory could be saved by clearing out any unwanted fields
             # from k before sending.
             self.server_manager.update_server_list(
-                k['gamename'], session_id, k,
+                k[b'gamename'], session_id, k,
                 self.sessions[session_id].console
             )._getvalue()
 
             if session_id in self.sessions:
-                self.sessions[session_id].gamename = k['gamename']
+                self.sessions[session_id].gamename = k[b'gamename']
 
     def handle_packet(self, socket, recv_data, address):
         """Tetris DS overlay 10 @ 02144184 - Handle responses back to server.
@@ -285,7 +286,7 @@ class GameSpyQRServer(object):
         Use as reference.
         """
         session_id = None
-        if recv_data[0] != '\x09':
+        if b'\x09' not in recv_data: #if recv_data[0] != '\x09':
             # Don't add a session if the client is trying to check if the game
             # is available or not
             session_id = struct.unpack("<I", recv_data[1:5])[0]
@@ -306,12 +307,12 @@ class GameSpyQRServer(object):
                 self.sessions[session_id].keepalive = int(time.time())
 
         # Handle commands
-        if recv_data[0] == '\x00':  # Query
+        if b'\x00' in recv_data: #if recv_data[0] == '\x00':  # Query
             self.log(logging.DEBUG, address, session_id,
                      "NOT IMPLEMENTED! Received query from %s:%s... %s",
                      address[0], address[1], recv_data[5:])
 
-        elif recv_data[0] == '\x01':  # Challenge
+        elif b'\x01' in recv_data: #elif recv_data[0] == '\x01':  # Challenge 
             self.log(logging.DEBUG, address, session_id,
                      "Received challenge from %s:%s... %s",
                      address[0], address[1], recv_data[5:])
@@ -355,14 +356,15 @@ class GameSpyQRServer(object):
                      "NOT IMPLEMENTED! Received echo from %s:%s... %s",
                      address[0], address[1], recv_data[5:])
 
-        elif recv_data[0] == '\x03':  # Heartbeat
+        #elif recv_data[0] == 'b\x03': #or recv_data[0] == '\x03p':  # Heartbeat
+        elif b'\x03' in recv_data:
             data = recv_data[5:]
             self.log(logging.DEBUG, address, session_id,
                      "Received heartbeat from %s:%s... %s",
                      address[0], address[1], data)
 
             # Parse information from heartbeat here
-            d = data.rstrip('\0').split('\0')
+            d = data.rstrip(b'\0').split(b'\0')
 
             # It may be safe to ignore "unknown" keys because the proper key
             # names get filled in later...
@@ -386,7 +388,7 @@ class GameSpyQRServer(object):
                         # base64 string anyway)
                         self.sessions[session_id].ingamesn = \
                             str(naslogin['ingamesn'])
-                    except Exception, e:
+                    except Exception as e:
                         # If the game doesn't have, don't worry about it.
                         pass
 
@@ -431,7 +433,7 @@ class GameSpyQRServer(object):
                 if found_console is False:
                     # Couldn't detect game, try to get it from the database
                     # Try a 3 times before giving up
-                    for i in range(0, 3):
+                    for i in range(0, 3): ########temp it's 0, 3 but changed for testing
                         try:
                             profile = self.db.get_profile_from_profileid(
                                 self.sessions[session_id].playerid
@@ -481,8 +483,8 @@ class GameSpyQRServer(object):
                 packet = bytearray([0xfe, 0xfd, 0x01])
                 # Get the session ID
                 packet.extend(session_id_raw)
-                packet.extend(server_challenge)
-                packet.extend('\x00')
+                packet.extend(server_challenge.encode())
+                packet.extend(b'\x00')
 
                 self.write_queue.put((packet, address))
                 self.log(logging.DEBUG, address, session_id,
@@ -491,6 +493,8 @@ class GameSpyQRServer(object):
 
                 self.sessions[session_id].sent_challenge = True
                 self.sessions[session_id].heartbeat_data = k
+
+
 
         elif recv_data[0] == '\x04':  # Add Error
             self.log(logging.WARNING, address, session_id,
@@ -576,6 +580,8 @@ class GameSpyQRServer(object):
 
         for session_id in pruned:
             del self.sessions[session_id]
+            print("deleted session " + str(session_id) + " gamespy_qr_server.py line 579")
+            #print("test remove keep-alive, gamepsy_qr_server.py line 579 ################################################")
 
 
 if __name__ == "__main__":

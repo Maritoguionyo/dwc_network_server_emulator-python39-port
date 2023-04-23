@@ -35,7 +35,7 @@ for nickfile in glob.glob("data/*-nick"):
     conn = db.conn
     c = conn.cursor()
 
-    print "Parsing %s..." % nickfile
+    print("Parsing %s..." % nickfile)
 
     cnt = 0
     for line in open(nickfile):
@@ -75,7 +75,7 @@ for nickfile in glob.glob("data/*-nick"):
 
             cnt += 1
             if cnt >= 50000:
-                print "%d nicks inserted..." % len(nicks)
+                print("%d nicks inserted..." % len(nicks))
                 conn.commit()
                 cnt = 0
     conn.commit()
@@ -93,7 +93,7 @@ for fcfiles in glob.glob("data/*-fc"):
     conn = db.conn
     c = conn.cursor()
 
-    print "Parsing %s..." % fcfiles
+    print("Parsing %s..." % fcfiles)
 
     cnt = 0
     for line in open(fcfiles):
@@ -123,7 +123,7 @@ for fcfiles in glob.glob("data/*-fc"):
                 cnt += 1
 
             if cnt >= 50000:
-                print "%d buddies inserted..." % len(fcs)
+                print("%d buddies inserted..." % len(fcs))
                 conn.commit()
                 cnt = 0
 
