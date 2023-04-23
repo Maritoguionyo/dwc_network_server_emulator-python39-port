@@ -285,8 +285,21 @@ class GameSpyQRServer(object):
         https://github.com/sfcspanky/Openspy-Core/tree/master/qr
         Use as reference.
         """
+        #try: 
+        #    recv_data = str(recv_data) #testie #recv_data = recv_data.decode()
+        #except UnicodeDecodeError:
+        #    print('cannot convert recv_data to str')
+            
+        #try:
+        #    recv_data = recv_data.decode()
+        #except TypeError:
+        #    print('cannot convert recv_data to string') 
+        #recv_data = recv_data.decode('utf-8', 'replace')
+        #print("recv_data is " + recv_data[0])
         session_id = None
-        if b'\x09' not in recv_data: #if recv_data[0] != '\x09':
+        if recv_data.startswith(b'\x09'): #if recv_data[0] != '\x09': #if b'\x09' not in recv_data: #if recv_data[0] != '\x09':
+            pass
+        else:
             # Don't add a session if the client is trying to check if the game
             # is available or not
             session_id = struct.unpack("<I", recv_data[1:5])[0]
@@ -307,12 +320,12 @@ class GameSpyQRServer(object):
                 self.sessions[session_id].keepalive = int(time.time())
 
         # Handle commands
-        if b'\x00' in recv_data: #if recv_data[0] == '\x00':  # Query
+        if recv_data.startswith(b'\x00'): #if recv_data[0] == '\x00':    #if b'\x00' in recv_data: #if recv_data[0] == '\x00':  # Query
             self.log(logging.DEBUG, address, session_id,
                      "NOT IMPLEMENTED! Received query from %s:%s... %s",
                      address[0], address[1], recv_data[5:])
 
-        elif b'\x01' in recv_data: #elif recv_data[0] == '\x01':  # Challenge 
+        elif recv_data.startswith(b'\x01'): #elif recv_data[0] == '\x01': #elif b'\x01' in recv_data: #elif recv_data[0] == '\x01':  # Challenge 
             self.log(logging.DEBUG, address, session_id,
                      "Received challenge from %s:%s... %s",
                      address[0], address[1], recv_data[5:])
@@ -351,13 +364,20 @@ class GameSpyQRServer(object):
                     session_id
                 )
 
-        elif recv_data[0] == '\x02':  # Echo
+        elif recv_data.startswith(b'\x02'): #elif recv_data[0] == '\x02':  # Echo
             self.log(logging.DEBUG, address, session_id,
                      "NOT IMPLEMENTED! Received echo from %s:%s... %s",
                      address[0], address[1], recv_data[5:])
+            
+        #temp_recv = str(recv_data[0])
+        #print(temp_recv)
+        
+
 
         #elif recv_data[0] == 'b\x03': #or recv_data[0] == '\x03p':  # Heartbeat
-        elif b'\x03' in recv_data:
+
+        elif recv_data.startswith(b'\x03'): #elif recv_data[0] == '\x03': #elif b'\x03' in recv_data: # Heartbeat
+            
             data = recv_data[5:]
             self.log(logging.DEBUG, address, session_id,
                      "Received heartbeat from %s:%s... %s",
@@ -496,23 +516,23 @@ class GameSpyQRServer(object):
 
 
 
-        elif recv_data[0] == '\x04':  # Add Error
+        elif recv_data.startswith(b'\x04'): #elif recv_data[0] == '\x04':  # Add Error
             self.log(logging.WARNING, address, session_id,
                      "NOT IMPLEMENTED! Received add error from %s:%s... %s",
                      address[0], address[1], recv_data[5:])
 
-        elif recv_data[0] == '\x05':  # Echo Response
+        elif recv_data.startswith(b'\0x05'): #elif recv_data[0] == '\x05':  # Echo Response
             self.log(logging.WARNING, address, session_id,
                      "NOT IMPLEMENTED! Received echo response"
                      " from %s:%s... %s",
                      address[0], address[1], recv_data[5:])
 
-        elif recv_data[0] == '\x06':  # Client Message
+        elif recv_data.startswith(b'x06'): #elif recv_data[0] == '\x06':  # Client Message
             self.log(logging.WARNING, address, session_id,
                      "NOT IMPLEMENTED! Received echo from %s:%s... %s",
                      address[0], address[1], recv_data[5:])
 
-        elif recv_data[0] == '\x07':  # Client Message Ack
+        elif recv_data.startswith(b'\x07'): #elif recv_data[0] == '\x07':  # Client Message Ack
             # self.log(logging.WARNING, address, session_id,
             #          "NOT IMPLEMENTED! Received client message ack"
             #          " from %s:%s... %s",
@@ -521,13 +541,13 @@ class GameSpyQRServer(object):
                      "Received client message ack from %s:%s...",
                      address[0], address[1])
 
-        elif recv_data[0] == '\x08':  # Keep Alive
+        elif recv_data.startswith(b'\x08'): #elif recv_data[0] == '\x08':  # Keep Alive
             self.log(logging.DEBUG, address, session_id,
                      "Received keep alive from %s:%s...",
                      address[0], address[1])
             self.sessions[session_id].keepalive = int(time.time())
 
-        elif recv_data[0] == '\x09':  # Available
+        elif recv_data.startswith(b'x09'): #elif recv_data[0] == '\x09':  # Available
             # Availability check only sent to *.available.gs.nintendowifi.net
             self.log(logging.DEBUG, address, session_id,
                      "Received availability request for '%s' from %s:%s...",
@@ -537,7 +557,7 @@ class GameSpyQRServer(object):
                 address
             ))
 
-        elif recv_data[0] == '\x0a':  # Client Registered
+        elif recv_data.startswith(b'\x0a'): #elif recv_data[0] == '\x0a':  # Client Registered
             # Only sent to client, never received?
             self.log(logging.WARNING, address, session_id,
                      "NOT IMPLEMENTED! Received client registered"
