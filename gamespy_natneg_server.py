@@ -54,10 +54,29 @@ GameSpyServerDatabase.register("delete_natneg_server")
 
 def handle_natneg(nn, recv_data, addr, socket):
     """Command: Unknown."""
-    logger.log(logging.DEBUG,
-               "Received unknown command %02x from %s:%d...",
-               ord(recv_data[7]), *addr)
+    if isinstance(recv_data, int):
+        recv_data_bytes = bytes(recv_data)
+        logger.log(logging.DEBUG,
+                   "Received unknown command %02x from %s:%d...",
+                   ord(recv_data_bytes[7]), *addr)
+    elif isinstance(recv_data, bytes):
+        recv_data_str = recv_data.decode('latin-1')  #recv_data.decode('utf-8')
+        logger.log(logging.DEBUG,
+                   "Received unknown command %02x from %s:%d...",
+                   ord(recv_data_str[7]), *addr)
+    else:
+        logger.log(logging.DEBUG,
+                   "Received unknown command %02x from %s:%d...",
+                   ord(recv_data[7]), *addr)
     logger.log(logging.DEBUG, "%s", utils.pretty_print_hex(recv_data))
+
+
+#def handle_natneg(nn, recv_data, addr, socket):
+#    """Command: Unknown."""
+#    logger.log(logging.DEBUG,
+#               "Received unknown command %02x from %s:%d...",
+#####               ord(recv_data[7]), *addr)
+#    logger.log(logging.DEBUG, "%s", utils.pretty_print_hex(recv_data))
 
 
 def handle_natneg_init(nn, recv_data, addr, socket):

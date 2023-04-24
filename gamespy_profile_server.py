@@ -567,7 +567,7 @@ class PlayerSession(LineReceiver):
                              "SENDING TO %s:%s: %s",
                              self.sessions[dest_profileid].address.host,
                              self.sessions[dest_profileid].address.port, msg)
-                    self.sessions[dest_profileid].transport.write(bytes(msg))
+                    self.sessions[dest_profileid].transport.write(bytes(msg.encode('utf-8'))) ##encoding
                     self.send_status_to_friends(dest_profileid)
                     self.get_status_from_friends(dest_profileid)
                 else:
@@ -670,7 +670,7 @@ class PlayerSession(LineReceiver):
             ('msg', ""),
         ])
 
-        self.transport.write(bytes(msg))
+        self.transport.write(bytes(msg.encode('utf-8'))) ####fixing more more more more 
 
     def perform_delbuddy(self, data_parsed):
         """Sample:
@@ -733,7 +733,7 @@ class PlayerSession(LineReceiver):
                 #              buddy['buddyProfileId']
                 #          ].address.port, msg)
                 self.sessions[buddy['buddyProfileId']].transport \
-                                                      .write(bytes(msg))
+                                                      .write(bytes(msg.encode('utf-8'))) ###added encode
 
     def get_status_from_friends(self, buddy_profileid=None):
         """This will be called when the player logs in.
@@ -771,7 +771,7 @@ class PlayerSession(LineReceiver):
                 ('msg', status_msg),
             ])
 
-            self.transport.write(bytes(msg))
+            self.transport.write(bytes(msg.encode('utf-8'))) ##fixing more stuff
 
     def get_buddy_authorized(self):
         buddies = self.db.buddy_need_auth_message(self.profileid)
@@ -785,7 +785,7 @@ class PlayerSession(LineReceiver):
                  " your list"),
             ])
 
-            self.transport.write(bytes(msg))
+            self.transport.write(bytes(msg.encode('utf-8'))) ##fixing stuffff
             self.db.buddy_sent_auth_message(buddy['userProfileId'],
                                             buddy['buddyProfileId'])
 
@@ -815,7 +815,7 @@ class PlayerSession(LineReceiver):
             ('msg', msg),
         ])
 
-        session.transport.write(bytes(msg))
+        session.transport.write(bytes(msg.encode('utf-8'))) ###aded encode thing
 
     def get_pending_messages(self):
         messages = self.db.get_pending_messages(self.profileid)

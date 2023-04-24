@@ -299,7 +299,12 @@ class Session(LineReceiver):
 
                 elif packet[2] == 2: ###elif packet[2] == '\x02':  # Send message request
                     packet_len = utils.get_short(packet, 0, True)
-                    dest_addr = '.'.join(["%d" % ord(x) for x in packet[3:7]])
+                    if isinstance(packet, int):  ##Temporary test for checking if they have like idk
+                        packet_bytes = bytes(packet)
+                        dest_addr = '.'.join(["%d" % ord(x) for x in packet_bytes[3:7]])
+                    else:
+                        packet_str = ''.join([chr(byte) for byte in packet_data])
+                        dest_addr = '.'.join(["%d" % ord(x) for x in packet_str[3:7]]) ####Might be broken
                     # What's the pythonic way to do this? unpack?
                     dest_port = utils.get_short(packet, 7, True)
                     dest = (dest_addr, dest_port)
@@ -434,7 +439,14 @@ class Session(LineReceiver):
                     # Write data for associated fields
                     if 'requested' in server_info:
                         for field in fields:
-                            bytearray(server_info['requested'][field].encode()) + b'\0'
+                            output += b'\xff' + bytearray(server_info['requested'][field].encode()) + b'\0'
+ 
+                            # output += '\xff' + \
+#                                      bytearray(
+#                                          server_info['requested'][field]
+#                                      ) + '\0'
+                            
+                            ##bytearray(server_info['requested'][field].encode()) + b'\0'
 
                             #bytearray(server_info['requested'][field]) + b'\0'
 
