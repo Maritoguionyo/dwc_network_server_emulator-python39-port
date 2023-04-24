@@ -83,7 +83,7 @@ def rc4_encrypt(_key, _data):
         return
 
     # Key-scheduling algorithm
-    S = range(0x100)
+    S = list(range(0x100))#S = range(0x100)
 
     j = 0
     for i in range(0x100):
@@ -91,6 +91,9 @@ def rc4_encrypt(_key, _data):
         j = (j + S[i] + key[i % len(key)]) & 0xff
 
         # Perform swap
+        #temp = S[i]
+        #S[i] = S[j]
+        #S[j] = temp
         S[i], S[j] = S[j], S[i]
 
     # Pseudo-random generation algorithm + encryption
@@ -274,10 +277,10 @@ class EncTypeX:
         # it'll raise an error
         #if isinstance(key, str): #check if key is a string to encode #cuz python 39 is annoying xd
         #    key = bytes(key)
-        key = bytearray(key.encode('ascii'))
+        key = bytearray(key.encode('utf-8'))  #key = bytearray(bytes(key))#key = bytearray(key.encode('ascii'))
         #if isinstance(validate, str): #idk probably I'm doing somethign wrong jelp mii plis
         #    validate = bytes(validate)  #.encode('utf-8')
-        validate = bytearray(validate.encode('ascii'))
+        validate = bytearray(validate.encode('utf-8')) #validate = bytearray(bytes(validate))#validate = bytearray(validate.encode('ascii'))
 
         # Add room for the header
         tmp_len = 20

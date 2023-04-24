@@ -23,7 +23,7 @@ Server emulator for *.available.gs.nintendowifi.net and
 Query and Reporting:
 http://docs.poweredbygamespy.com/wiki/Query_and_Reporting_Overview
 """
-
+import json
 import logging
 import select
 import socket
@@ -176,12 +176,12 @@ class GameSpyQRServer(object):
             # Some memory could be saved by clearing out any unwanted fields
             # from k before sending.
             self.server_manager.update_server_list(
-                k[b'gamename'], session_id, k,
+                k['gamename'], session_id, k,
                 self.sessions[session_id].console
             )._getvalue()
 
             if session_id in self.sessions:
-                self.sessions[session_id].gamename = k[b'gamename']
+                self.sessions[session_id].gamename = k['gamename']
 
     def handle_packet(self, socket, recv_data, address):
         """Tetris DS overlay 10 @ 02144184 - Handle responses back to server.
@@ -297,13 +297,14 @@ class GameSpyQRServer(object):
         #recv_data = recv_data.decode('utf-8', 'replace')
         #print("recv_data is " + recv_data[0])
         session_id = None
-        if recv_data.startswith(b'\x09'): #if recv_data[0] != '\x09': #if b'\x09' not in recv_data: #if recv_data[0] != '\x09':
-            pass
-        else:
-            # Don't add a session if the client is trying to check if the game
-            # is available or not
+        #if is not recv_data.startswith(b'\x09'): #if recv_data[0] != '\x09': #if b'\x09' not in recv_data: #if recv_data[0] != '\x09':
+        if recv_data[0] != 9:
             session_id = struct.unpack("<I", recv_data[1:5])[0]
             session_id_raw = recv_data[1:5]
+            # Don't add a session if the client is trying to check if the game
+            # is available or not
+            #session_id = struct.unpack("<I", recv_data[1:5])[0]
+            #session_id_raw = recv_data[1:5]
             if session_id not in self.sessions:
                 # Found a new session, add to session list
                 self.sessions[session_id] = self.Session(address)
@@ -393,9 +394,19 @@ class GameSpyQRServer(object):
                 # self.log(logging.DEBUG, address, session_id,
                 #          "%s = %s",
                 #          d[i], d[i + 1])
-                k[d[i]] = d[i+1]
-
+                k[d[i]] = d[i + 1]
+                
+            kv2 = k  #savinfg just in case
+            string_dict = {}
+            for key, value in k.items():
+                string_key = key.decode('utf-8')
+                string_value = value.decode('utf-8')
+                string_dict[string_key] = string_value
+            k = string_dict  ########fix for the rest of the code bcuz the dictionary is a byte dictionary and I don't wanna mess the code up lol (kinda)
+            #k = json.loads(k.decode('utf-8')) #fix for the code
+            #k = k.decode('utf-8')
             if self.sessions[session_id].ingamesn is not None:
+                
                 if "gamename" in k and "dwc_pid" in k:
                     try:
                         profile = self.db.get_profile_from_profileid(
@@ -546,9 +557,12 @@ class GameSpyQRServer(object):
                      "Received keep alive from %s:%s...",
                      address[0], address[1])
             self.sessions[session_id].keepalive = int(time.time())
-
-        elif recv_data.startswith(b'\x09'): #elif recv_data[0] == '\x09':  # Available
+        
+        elif recv_data[0] == 9: #elif recv_data.startswith(b'\x09'): #elif recv_data[0] == '\x09':  # Available
             # Availability check only sent to *.available.gs.nintendowifi.net
+            print(recv_data[0])#
+            int_list = [byte for byte in recv_data]#
+            print(int_list)#
             self.log(logging.DEBUG, address, session_id,
                      "Received availability request for '%s' from %s:%s...",
                      recv_data[5: -1], address[0], address[1])

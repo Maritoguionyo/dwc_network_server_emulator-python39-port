@@ -434,10 +434,16 @@ class Session(LineReceiver):
                     # Write data for associated fields
                     if 'requested' in server_info:
                         for field in fields:
-                            output += '\xff' + \
-                                      bytearray(
-                                          server_info['requested'][field]
-                                      ) + '\0'
+                            bytearray(server_info['requested'][field].encode()) + b'\0'
+
+                            #bytearray(server_info['requested'][field]) + b'\0'
+
+                            #output += b'\xff' + bytearray(server_info['requested'][field]) + b'\0'
+  
+#                            output += '\xff' + \
+#                                      bytearray(
+#                                          server_info['requested'][field]
+#                                      ) + '\0'
 
         return output
 
@@ -465,7 +471,7 @@ class Session(LineReceiver):
         self.log(logging.DEBUG,
                  "Searching for server matching '%s' with the fields '%s'",
                  filter, fields)
-
+        
         self.server_list = self.server_manager.find_servers(
             query_game, filter, fields, max_servers
         )._getvalue()
@@ -504,7 +510,7 @@ class Session(LineReceiver):
             #     self.server_cache[str(server['publicip']) + \
             #                       str(server['publicport'])] = server
 
-        data += bytearray(b'\0') #data += bytearray('\0', 'utf-8') #####data += '\0' #testing
+        data += b'\0' #data += '\0' #data += 0 #data += bytearray(b'\0') #data += bytearray('\0', 'utf-8') #####data += '\0' #testing
         data += utils.get_bytes_from_int(0xffffffff)
         send_encrypted_data(self, challenge, data)
 

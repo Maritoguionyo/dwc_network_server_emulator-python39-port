@@ -244,3 +244,4 @@ dwc_network_server_emulator.code-workspace
 .gitignore
 dwc_network_server_emulator.pyproj
 dwc_network_server_emulator.sln
+gamespy_backend_server.py.old
