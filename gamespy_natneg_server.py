@@ -355,7 +355,8 @@ def handle_natneg_connect_ack(nn, recv_data, addr, socket):
     a0 80 00 00       - Local IP?
     00 90             - Local port?
     """
-    client_id = "%02x" % ord(recv_data[13])
+    recv_data_list = [int(byte) for byte in recv_data]
+    client_id = "%02x" % ord(str(recv_data_list[13]))
     session_id = utils.get_int(recv_data, 8)
     logger.log(logging.DEBUG,
                "Received connected command from %s:%d...",
@@ -746,7 +747,7 @@ class GameSpyNatNegUDPServerHandler(SocketServer.BaseRequestHandler):
             print(recv_data_int)
             print(bytes(recv_data_int[7]))
             recv_data_list = [f"x{byte:02x}" for byte in recv_data] #recv_data_list = [f"\x{byte:02x}" for byte in recv_data]
-
+            
             command = self.nn_commands.get(recv_data_list[7], handle_natneg) #command = self.nn_commands.get(recv_data[7], handle_natneg)
             command(self.server, recv_data, addr, socket)
         except:
