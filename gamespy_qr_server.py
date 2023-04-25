@@ -299,6 +299,10 @@ class GameSpyQRServer(object):
         session_id = None
         #if is not recv_data.startswith(b'\x09'): #if recv_data[0] != '\x09': #if b'\x09' not in recv_data: #if recv_data[0] != '\x09':
         if recv_data[0] != 9:
+            while len(recv_data) < 5: ##to prevent an exception when an user bypasses error 67010 (or could break instead xd) (will cause a 84020 error instead during matchmaking)
+                print("not enough buffer of recv_data (probably error 67010 was bypassed)")
+                return #will have to find a way to fix error 67010 on login (this bug is also in vanilla DWC)
+                #recv_data += b'\x00'
             session_id = struct.unpack("<I", recv_data[1:5])[0]
             session_id_raw = recv_data[1:5]
             # Don't add a session if the client is trying to check if the game
