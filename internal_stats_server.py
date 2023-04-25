@@ -81,20 +81,22 @@ class StatsPage(resource.Resource):
             raw = False
             force_update = False
 
-        server_list = self.stats.get_server_list(force_update)
+        server_list = self.stats.get_server_list(force_update) ###original thing
         
-        print(server_list)
+#        print(server_list)
 
-        decoded_list = {
-            k.decode(): [
-                {
-                    k2.decode(): v2.decode() if isinstance(v2, bytes) else v2 if isinstance(v2, str) else v2 
-                    for k2, v2 in d.items() if not isinstance(k2, str)
-                } 
-                for v in server_list.values() for d in v
-            ]
-            for k in server_list.keys()
-}
+        
+#        decoded_list = {
+        
+        #    k.decode(): [
+        #        {
+        #            k2.decode(): v2.decode() if isinstance(v2, bytes) else v2 if isinstance(v2, str) else v2 
+        #            for k2, v2 in d.items() if not isinstance(k2, str)
+        #        } 
+ #               for v in server_list.values() for d in v
+ #           ]
+#            for k in server_list.keys()
+#        }
 
         #decoded_list = {k.decode(): [{k2.decode(): v2.decode() if isinstance(v2, bytes) else v2 if isinstance(v2, str) else v2 for k2, v2 in d.items() if not isinstance(k2, str)}] for v in server_list.values() for d in v]
 
@@ -119,7 +121,7 @@ class StatsPage(resource.Resource):
 
         #decoded_list = {k.decode(): [{k2.decode(): v2.decode() if isinstance(v2, bytes) else v2 if not isinstance(v2, str) else v2 for k2, v2 in d.items()} for d in v] for k, v in server_list.items()}
         #decoded_list = {k.decode(): [{k2.decode(): v2.decode() if isinstance(v2, bytes) else v2 for k2, v2 in d.items()} for d in v] for k, v in server_list.items()}
-        print(decoded_list)
+#############        print(decoded_list)
         #server_str = str(server_list, 'utf-8') # Convert bytes to string
         #decoded_data = {}
         #for game in json.loads(server_str):
@@ -173,7 +175,7 @@ class StatsPage(resource.Resource):
         #server_str = [str(item) for item in server_list]
         #server_str = server_list.decode('utf-8')
 
-        server_list = decoded_list
+        #server_list = decoded_list
         if raw:
             # List of keys to be removed
             restricted = ["publicip", "__session__", "localip0", "localip1"]

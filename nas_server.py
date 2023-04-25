@@ -208,7 +208,7 @@ def handle_pr(handler, addr, post):
                handler.path, *addr)
     logger.log(logging.DEBUG, "%s", post)
 
-    words = len(post["words"].split('\t'))
+    words = len(post[b'words'].split(b'\t'))
     wordsret = "0" * words
     ret = {
         "prwords": wordsret,

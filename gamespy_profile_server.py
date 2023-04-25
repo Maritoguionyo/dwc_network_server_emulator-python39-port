@@ -424,7 +424,7 @@ class PlayerSession(LineReceiver):
         # profile = self.db.get_profile_from_session_key(
         #     data_parsed['sesskey']
         # )
-        profile = self.db.get_profile_from_profileid(data_parsed['profileid'])
+        profile = self.db.get_profile_from_profileid(data_parsed['profileid']) #original
 
         # Wii example:
         # \pi\\profileid\474888031\nick\5pde5vhn1WR9E2g1t533\userid\442778352
