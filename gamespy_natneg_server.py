@@ -115,7 +115,8 @@ def handle_natneg_init(nn, recv_data, addr, socket):
 
     # Try to connect to the server
     gameid = utils.get_string(recv_data, 0x15)
-    client_id = "%02x" % ord(recv_data[13])
+    recv_data_list = [int(byte) for byte in recv_data] #recv_data_list = [f"\\x{byte:02x}" for byte in recv_data]
+    client_id = "%02x" % ord(str(recv_data_list[13])) #client_id = "%02x" % ord(recv_data[13])
     localaddr = utils.get_local_addr(recv_data, 15)
 
     nn.session_list \
@@ -704,24 +705,24 @@ class GameSpyNatNegUDPServerHandler(SocketServer.BaseRequestHandler):
     """GameSpy NAT Negotiation handler."""
 
     nn_magics = bytearray([0xfd, 0xfc, 0x1e, 0x66, 0x6a, 0xb2])
-    nn_commands = {
-        '\x00': handle_natneg_init,
-        '\x01': handle_natneg_initack,
-        '\x02': handle_natneg_erttest,
-        '\x03': handle_natneg_ertack,
-        '\x04': handle_natneg_stateupdate,
-        '\x05': handle_natneg_connect,
-        '\x06': handle_natneg_connect_ack,
-        '\x07': handle_natneg_connect_ping,
-        '\x08': handle_natneg_backup_test,
-        '\x09': handle_natneg_backup_ack,
-        '\x0A': handle_natneg_address_check,
-        '\x0B': handle_natneg_address_reply,
-        '\x0C': handle_natneg_natify_request,
-        '\x0D': handle_natneg_report,
-        '\x0E': handle_natneg_report_ack,
-        '\x0F': handle_natneg_preinit,
-        '\x10': handle_natneg_preinit_ack
+    nn_commands = { ##making them bytes # making the string bcuz em idk like 'xfd'
+        'x00': handle_natneg_init, #removing the \
+        'x01': handle_natneg_initack,
+        'x02': handle_natneg_erttest,
+        'x03': handle_natneg_ertack,
+        'x04': handle_natneg_stateupdate,
+        'x05': handle_natneg_connect,
+        'x06': handle_natneg_connect_ack,
+        'x07': handle_natneg_connect_ping,
+        'x08': handle_natneg_backup_test,
+        'x09': handle_natneg_backup_ack,
+        'x0a': handle_natneg_address_check, #making them smaller case
+        'x0b': handle_natneg_address_reply,
+        'x0c': handle_natneg_natify_request,
+        'x0d': handle_natneg_report,
+        'x0e': handle_natneg_report_ack,
+        'x0f': handle_natneg_preinit,
+        'x10': handle_natneg_preinit_ack
     }
 
     def handle(self):
@@ -739,7 +740,14 @@ class GameSpyNatNegUDPServerHandler(SocketServer.BaseRequestHandler):
 
         # Handle commands
         try:
-            command = self.nn_commands.get(recv_data[7], handle_natneg)
+            #recv_data_bytearray = bytearray(recv_data)  ###testing
+            #print(str(recv_data_bytearray))
+            recv_data_int = [byte for byte in recv_data]
+            print(recv_data_int)
+            print(bytes(recv_data_int[7]))
+            recv_data_list = [f"x{byte:02x}" for byte in recv_data] #recv_data_list = [f"\x{byte:02x}" for byte in recv_data]
+
+            command = self.nn_commands.get(recv_data_list[7], handle_natneg) #command = self.nn_commands.get(recv_data[7], handle_natneg)
             command(self.server, recv_data, addr, socket)
         except:
             logger.log(logging.ERROR, "Failed to handle command!")

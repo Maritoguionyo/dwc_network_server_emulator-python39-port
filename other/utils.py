@@ -199,7 +199,12 @@ def get_local_addr(data, idx):
 def get_string(data, idx):
     """Get string from bytes."""
     data = data[idx:]
-    end = data.index ('\x00') #end = data.index('\x00') #end = data.index('\x00')###testing
+    if isinstance(data, str):
+        end = data.index ('\x00')
+    else:
+        data = data.decode('utf-8')
+        end = data.index('\x00')  #end = data.index('\x00') #end = data.index('\x00')###testing
+        #end = bytes(end)
     return str(''.join(data[:end]))
 
 
