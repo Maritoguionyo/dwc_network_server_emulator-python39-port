@@ -646,8 +646,10 @@ class GamespyDatabase(object):
         if "ingamesn" in data:
             data["ingamesn"] = gs_utils.base64_encode(data["ingamesn"])
 
-
-        data = {str(k, 'utf-8') if isinstance(k, bytes) else k: str(v, 'utf-8') if isinstance(v, bytes) else v for k, v in data.items()}
+        data = {str(k, 'utf-8', errors='replace') if isinstance(k, bytes) else k: str(v, 'utf-8', errors='replace') if isinstance(v, bytes) else v for k, v in data.items()}
+        #replacing instead of decoding errprs, however it seems to do something with error 60000
+        
+        #data = {str(k, 'utf-8') if isinstance(k, bytes) else k: str(v, 'utf-8') if isinstance(v, bytes) else v for k, v in data.items()}
         #data = {k.decode('utf-8') if isinstance(k, bytes) else k: v.decode('utf-8') if isinstance(v, bytes) else v.decode('utf-8') if isinstance(v, bytes) else v for k, v in data.items()}
         #data = {k.decode('utf-8') if isinstance(k, bytes) else k: v.decode('utf-8') if isinstance(v, bytes) else v for k, v in data.items()}
         data = json.dumps(data).encode('utf-8')
