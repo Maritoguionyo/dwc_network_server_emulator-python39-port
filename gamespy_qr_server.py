@@ -600,7 +600,7 @@ class GameSpyQRServer(object):
 
         for session_id in self.sessions:
             delta = now - self.sessions[session_id].keepalive
-            timeout = 61  # Remove clients that haven't responded in x seconds
+            timeout = 500 #8 minutes for ctgp #timeout = 61  # Remove clients that haven't responded in x seconds  ###temp change for some clients
 
             if delta < 0 or delta >= timeout:
                 pruned.append(session_id)
